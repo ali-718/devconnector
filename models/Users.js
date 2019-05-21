@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const secret = require('../config/keys');
 
 const userSchema = new Schema({
   name: {
@@ -25,7 +27,7 @@ const userSchema = new Schema({
   }
 });
 
-userSchema.pre("save", function(next) {
+userSchema.pre("save", function (next) {
   user = this;
 
   if (user.isModified("password")) {
@@ -40,7 +42,7 @@ userSchema.pre("save", function(next) {
   }
 });
 
-userSchema.statics.findByCredentials = function(email, password) {
+userSchema.statics.findByCredentials = function (email, password) {
   var User = this;
 
   return User.findOne({
@@ -50,7 +52,9 @@ userSchema.statics.findByCredentials = function(email, password) {
       // return res.status(404).json({
       //     error: "user not found"
       // })
-      return Promise.reject({ err: "user not found" });
+      return Promise.reject({
+        err: "user not found"
+      });
     }
 
     return new Promise((resolve, reject) => {
@@ -58,12 +62,29 @@ userSchema.statics.findByCredentials = function(email, password) {
         if (res) {
           resolve(user);
         } else {
-          reject({ err: "incorrect password" });
+          reject({
+            err: "incorrect password"
+          });
         }
       });
     });
   });
 };
+
+userSchema.statics.findByToken = function (token) {
+  var user = this;
+  var decode;
+
+  try {
+    decode = jwt.verify(token, secret.secret)
+  } catch (e) {
+    return Promise.reject(e)
+  }
+
+  return user.findOne({
+    email: decode.email
+  })
+}
 
 User = mongoose.model("users", userSchema);
 

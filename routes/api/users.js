@@ -2,7 +2,25 @@ const express = require("express");
 const router = express.Router();
 const User = require("../../models/Users");
 const gravatar = require("gravatar");
-const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
+const secret = require('../../config/keys');
+
+//middleware
+var authenticate = (req, res, next) => {
+  var token = req.header("x-auth");
+
+  User.findByToken(token).then(user => {
+    if (!user) {
+      return res.json({
+        err: "Please login to continue"
+      })
+    }
+    req.user = user;
+    next();
+  }).catch(e => {
+    res.status(400).json(e)
+  })
+}
 
 // @route /api/users/
 // @desc testing routes
@@ -53,38 +71,54 @@ router.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  //   User.findOne({
-  //     email
-  //   }).then(user => {
-  //     if (!user) {
-  //       return res.status(404).json({
-  //         error: "user not found"
-  //       });
-  //     }
-
-  //     bcrypt.compare(password, user.password).then(pass => {
-  //       if (pass) {
-  //         res.json({
-  //           msg: "succesfully login"
-  //         });
-  //       } else {
-  //         res.status(400).json({
-  //           err: "password is incorrect"
-  //         });
-  //       }
-  //     });
-  //   });
-
   User.findByCredentials(email, password)
     .then(user => {
       if (!user) {
-        res.status(400).json({ err: "user not found" });
+        res.status(400).json({
+          err: "user not found"
+        });
       }
-      res.json({ user, msg: "successfully login" });
+      // res.json({ user, msg: "successfully login" });
+      // res.json(user)
+      const payload = {
+        _id: user._id,
+        email: user.email,
+        avatar: user.avatar
+      }
+
+      jwt.sign(payload, secret.secret, {
+        expiresIn: 3600
+      }, (err, token) => {
+        if (err) {
+          res.status(400).json({
+            err: "error occoured"
+          })
+        } else {
+          res.header("x-auth", token).json({
+            user,
+            token
+          })
+        }
+      })
     })
     .catch(err => {
       res.status(400).json(err);
     });
 });
+
+// @route /api/users/current
+// @desc return current user
+// @status private route
+// router.get('/current', passport.authenticate("jwt", {
+//   session: false
+// }), (req, res) => {
+//   res.json(req.user)
+// })
+router.post('/current', authenticate, (req, res) => {
+
+  var user = req.user;
+
+  res.json(user);
+})
 
 module.exports = router;
