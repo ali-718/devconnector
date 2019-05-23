@@ -5,6 +5,7 @@ const gravatar = require("gravatar");
 const jwt = require('jsonwebtoken');
 const secret = require('../../config/keys');
 const authenticate = require('../../middleware/authenticate');
+const registerHandler = require("../../validation/register");
 
 // @route /api/users/
 // @desc testing routes
@@ -19,34 +20,46 @@ router.get("/test", (req, res) => {
 // @desc Register route
 // @status Public route
 router.post("/register", (req, res) => {
+
+  const {
+    errors,
+    isValid
+  } = registerHandler(req.body);
+
+  if (isValid) {
+    return res.status(400).json(errors);
+  }
+
   User.findOne({
     email: req.body.email
   }).then(user => {
+
     if (user) {
-      return res.json({
-        error: "Email already exist"
-      });
-    } else {
-      const avatar = gravatar.url(req.body.email, {
-        s: "200", //size
-        r: "pg", //rating
-        d: "mm" //default
-      });
-
-      const userSchema = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
-        avatar
-      });
-
-      userSchema
-        .save()
-        .then(user => res.json(user))
-        .catch(err => res.json(err, "error occoured"));
+      return res.status(400).json({
+        err: "user already exist"
+      })
     }
-  });
-});
+
+    const avatar = gravatar.url(req.body.email, {
+      s: "200", //size
+      r: "pg", //rating
+      d: "mm" //default
+    });
+
+    const userSchema = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      avatar
+    });
+
+    userSchema.save().then(user => {
+      res.json(user)
+    }).catch(e => res.status(400).json(e));
+
+  })
+})
+
 
 // @route /api/users/login
 // @desc Login th User / returning JWT

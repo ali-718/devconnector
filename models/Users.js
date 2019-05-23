@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const secret = require('../config/keys');
+const secret = require("../config/keys");
+const loginHandler = require("../validation/login");
 
 const userSchema = new Schema({
   name: {
@@ -21,7 +22,7 @@ const userSchema = new Schema({
     type: String,
     required: true
   },
-  createxAt: {
+  createdAt: {
     type: Date,
     default: Date.now
   }
@@ -43,17 +44,29 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.statics.findByCredentials = function (email, password) {
+  var body = {
+    email,
+    password
+  };
+
+  const {
+    errors,
+    isValid
+  } = loginHandler(body);
+
+  if (isValid) {
+    return Promise.reject(errors);
+  }
+
   var User = this;
 
   return User.findOne({
     email
   }).then(user => {
     if (!user) {
-      // return res.status(404).json({
-      //     error: "user not found"
-      // })
+      errors.email = "user not found";
       return Promise.reject({
-        err: "user not found"
+        errors
       });
     }
 
@@ -62,8 +75,9 @@ userSchema.statics.findByCredentials = function (email, password) {
         if (res) {
           resolve(user);
         } else {
+          errors.password = "incorrect password";
           reject({
-            err: "incorrect password"
+            errors
           });
         }
       });
@@ -76,15 +90,15 @@ userSchema.statics.findByToken = function (token) {
   var decode;
 
   try {
-    decode = jwt.verify(token, secret.secret)
+    decode = jwt.verify(token, secret.secret);
   } catch (e) {
-    return Promise.reject(e)
+    return Promise.reject(e);
   }
 
   return user.findOne({
     email: decode.email
-  })
-}
+  });
+};
 
 User = mongoose.model("users", userSchema);
 
