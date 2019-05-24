@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const User = require("../../models/Users");
 const gravatar = require("gravatar");
-const jwt = require('jsonwebtoken');
-const secret = require('../../config/keys');
-const authenticate = require('../../middleware/authenticate');
+const jwt = require("jsonwebtoken");
+const secret = require("../../config/keys");
+const authenticate = require("../../middleware/authenticate");
 const registerHandler = require("../../validation/register");
 
 // @route /api/users/
@@ -20,11 +20,7 @@ router.get("/test", (req, res) => {
 // @desc Register route
 // @status Public route
 router.post("/register", (req, res) => {
-
-  const {
-    errors,
-    isValid
-  } = registerHandler(req.body);
+  const { errors, isValid } = registerHandler(req.body);
 
   if (isValid) {
     return res.status(400).json(errors);
@@ -33,12 +29,11 @@ router.post("/register", (req, res) => {
   User.findOne({
     email: req.body.email
   }).then(user => {
-
     if (user) {
-      email = "user already exist"
+      email = "user already exist";
       return res.status(400).json({
         email
-      })
+      });
     }
 
     const avatar = gravatar.url(req.body.email, {
@@ -54,13 +49,14 @@ router.post("/register", (req, res) => {
       avatar
     });
 
-    userSchema.save().then(user => {
-      res.json(user)
-    }).catch(e => res.status(400).json(e));
-
-  })
-})
-
+    userSchema
+      .save()
+      .then(user => {
+        res.json(user);
+      })
+      .catch(e => res.status(400).json(e));
+  });
+});
 
 // @route /api/users/login
 // @desc Login th User / returning JWT
@@ -73,7 +69,7 @@ router.post("/login", (req, res) => {
     .then(user => {
       if (!user) {
         res.status(400).json({
-          err: "user not found"
+          email: "user not found"
         });
       }
       // res.json({ user, msg: "successfully login" });
@@ -82,22 +78,27 @@ router.post("/login", (req, res) => {
         _id: user._id,
         email: user.email,
         avatar: user.avatar
-      }
+      };
 
-      jwt.sign(payload, secret.secret, {
-        expiresIn: 3600
-      }, (err, token) => {
-        if (err) {
-          res.status(400).json({
-            err: "error occoured"
-          })
-        } else {
-          res.header("x-auth", token).json({
-            user,
-            token
-          })
+      jwt.sign(
+        payload,
+        secret.secret,
+        {
+          expiresIn: 3600
+        },
+        (err, token) => {
+          if (err) {
+            res.status(400).json({
+              err: "error occoured"
+            });
+          } else {
+            res.header("x-auth", token).json({
+              user,
+              token
+            });
+          }
         }
-      })
+      );
     })
     .catch(err => {
       res.status(400).json(err);
@@ -112,11 +113,10 @@ router.post("/login", (req, res) => {
 // }), (req, res) => {
 //   res.json(req.user)
 // })
-router.post('/current', authenticate, (req, res) => {
-
+router.post("/current", authenticate, (req, res) => {
   var user = req.user;
 
   res.json(user);
-})
+});
 
 module.exports = router;

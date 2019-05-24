@@ -28,7 +28,7 @@ const userSchema = new Schema({
   }
 });
 
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function(next) {
   user = this;
 
   if (user.isModified("password")) {
@@ -43,16 +43,13 @@ userSchema.pre("save", function (next) {
   }
 });
 
-userSchema.statics.findByCredentials = function (email, password) {
+userSchema.statics.findByCredentials = function(email, password) {
   var body = {
     email,
     password
   };
 
-  const {
-    errors,
-    isValid
-  } = loginHandler(body);
+  const { errors, isValid } = loginHandler(body);
 
   if (isValid) {
     return Promise.reject(errors);
@@ -64,9 +61,9 @@ userSchema.statics.findByCredentials = function (email, password) {
     email
   }).then(user => {
     if (!user) {
-      errors.email = "user not found";
+      email = "user not found";
       return Promise.reject({
-        errors
+        email
       });
     }
 
@@ -75,9 +72,9 @@ userSchema.statics.findByCredentials = function (email, password) {
         if (res) {
           resolve(user);
         } else {
-          errors.password = "incorrect password";
+          password = "incorrect password";
           reject({
-            errors
+            password
           });
         }
       });
@@ -85,7 +82,7 @@ userSchema.statics.findByCredentials = function (email, password) {
   });
 };
 
-userSchema.statics.findByToken = function (token) {
+userSchema.statics.findByToken = function(token) {
   var user = this;
   var decode;
 
