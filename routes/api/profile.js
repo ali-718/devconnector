@@ -147,4 +147,42 @@ router.post("/", authenticate, (req, res) => {
     });
 });
 
+// @route /api/experience
+// @desc  Add experience
+// @status Private route
+router.post('/experience',authenticate,(req,res) => {
+
+  Profile.findOne({user:req.user._id}).then(profile => {
+
+    const Experience = {
+      title:req.body.title,
+      company:req.body.company,
+      location:req.body.location,
+      from:req.body.from,
+      to:req.body.to,
+      current:req.body.current,
+      description:req.body.description
+    }
+
+    if(profile.experience.length == 0){
+      profile.experience.unshift(Experience);
+
+      profile.save().then(profile => {res.json(profile)}).catch(e => res.json(e))
+      
+    }
+    else{
+      Profile.findOneAndUpdate(
+        {user:req.user._id},
+        {$set:{
+          experience:Experience
+        }
+      },
+        {new:true,useFindAndModify:false}).then(profile => {
+        res.json(profile)
+      }).catch(e => res.status(400).json(e))
+
+    }
+  })
+})
+
 module.exports = router;
