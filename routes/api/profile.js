@@ -17,6 +17,63 @@ router.get("/test", (req, res) => {
   });
 });
 
+// @route /api/profile/user/all
+// @desc  Get user profile by handle
+// @status Public route
+router.get('/user/all',(req,res) => {
+  var errors = {};
+
+  Profile.find().populate("user",["name","avatar"]).then(user => {
+    if(!user){
+      errors.noprofile = `There are no users`
+      return res.status(404).json(errors)  
+    }
+
+    res.json(user);
+  }).catch((e) => {
+      return res.status(404).json(e)  
+  })
+})
+
+
+
+// @route /api/profile/handle/:handle
+// @desc  Get user profile by handle
+// @status Public route
+router.get('/handle/:handle',(req,res) => {
+  var handle = req.params.handle;
+  var errors = {};
+
+  Profile.findOne({handle}).populate("user",["name","avatar"]).then(handle => {
+    if(!handle){
+      errors.noprofile = "user does not exist having this handle"
+      return res.status(400).json(errors)
+    }
+
+    res.json(handle);
+  })
+})
+
+// @route /api/profile/user/:user_id
+// @desc  Get user profile by handle
+// @status Public route
+router.get('/user/:user_id',(req,res) => {
+  var userId = req.params.user_id;
+  var errors = {};
+
+  Profile.findOne({user:userId}).populate("user",["name","avatar"]).then(user => {
+    if(!user){
+      errors.noprofile = `user does not exist having id ${userId}`
+      return res.status(404).json(errors)  
+    }
+
+    res.json(user);
+  }).catch(() => {
+    errors.noprofile = `user does not exist having id ${userId}`
+      return res.status(404).json(errors)  
+  })
+})
+
 // @route /api/profile
 // @desc  create or update user profile
 // @status Private route
