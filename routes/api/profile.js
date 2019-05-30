@@ -269,25 +269,71 @@ router.post('/education',authenticate,(req,res) => {
       description:req.body.description
     }
 
-    if(profile.education.length == 0){
-      profile.education.unshift(Education);
+    profile.education.unshift(Education);
 
       profile.save().then(profile => {res.json(profile)}).catch(e => res.json(e))
       
-    }
-    else{
-      Profile.findOneAndUpdate(
-        {user:req.user._id},
-        {$set:{
-          education:Education
-        }
-      },
-        {new:true,useFindAndModify:false}).then(profile => {
-        res.json(profile)
-      }).catch(e => res.status(400).json(e))
-
-    }
   })
 })
+
+// @route /api/education/:id
+// @desc  edit education
+// @status Private route
+router.post('/education/:id',authenticate,(req,res) => {
+
+  var objectID = req.params.id;
+
+  const {errors,isValid} = educationValidator(req.body);
+
+  if(isValid){
+    return res.status(400).json(errors)
+  }
+
+  Profile.findOne({user:req.user._id}).then(profile => {
+
+    var degree = req.body.degree ? req.body.degree.trim() : ""
+    var institute= req.body.institute ? req.body.institute.trim() : "";
+    var fieldofstudy = req.body.fieldofstudy ? req.body.fieldofstudy.trim() : "";
+    var from = req.body.from ? req.body.from.trim() : ""
+    var to = req.body.to ? req.body.to.trim() : "";
+    var current = req.body.current ? req.body.current.trim() : "";
+    var description = req.body.description ? req.body.description.trim() : "";
+
+      profile.education.map(item => {
+        if(item.id == objectID){
+          item.degree = degree;
+          item.institute = institute;
+          item.fieldofstudy = fieldofstudy;
+          item.from = from;
+          item.to = to;
+          item.current = current;
+          item.description = description;
+         profile.save().then(profile => res.json(profile))
+        }
+      })
+
+  })
+})
+
+// @route /api/education/:id
+// @desc  delete education
+// @status Private route
+router.delete('/education/:id',authenticate,(req,res) => {
+
+  var objectID = req.params.id;
+
+  Profile.findOne({user:req.user._id}).then(profile => {
+    
+    //get experience id
+    var removeIndex = profile.education.map(item => item.id).indexOf(objectID);
+    if(removeIndex == -1) removeIndex = null;
+    if(removeIndex != null){
+    profile.education.splice(removeIndex,1);
+    }
+
+    profile.save().then(profile => res.json(profile))
+  })
+})
+
 
 module.exports = router;
