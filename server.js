@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use('/api/users', Users);
-app.use('/api/posts', Posts);
+app.use('/api/post', Posts);
 app.use('/api/profile', Profile);
 
 app.listen(Port, () => console.log(`app is running on port ${Port}`));

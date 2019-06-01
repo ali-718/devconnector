@@ -9,7 +9,6 @@ const educationValidator = require('../../validation/education');
 //Loading Models
 const Profile = require("../../models/Profile");
 const User = require("../../models/Users");
-
 // @route /api/profile/test
 // @desc testing routes
 // @status Public route
