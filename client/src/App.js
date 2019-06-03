@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { Component } from 'react';
+import {BrowserRouter as Router,Route} from 'react-router-dom';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import Landing from './components/layout/Landing';
+import Register from './components/auth/register';
+import Login from './components/auth/login';
+
+class App extends Component {
+  render() {
+    return (
+      <Router>
+        <div className="App">
+          <Navbar />
+          <Route exact path="/" component={Landing} />
+          <div className="container">
+            <Route path="/register" component={Register} />
+            <Route path="/login" component={Login} />
+          </div>
+          <Footer />
+        </div>
+      </Router>
+    );
+  }
 }
 
 export default App;

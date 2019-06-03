@@ -1,10 +1,10 @@
 const Validaor = require("validator");
 
 const registerValidator = data => {
-  var name = data.name.trim();
-  var email = data.email.trim();
-  var password = data.password.trim();
-  var password2 = data.confirmPassword.trim();
+  if(data.name) var name = data.name.trim(); else {var name=""}
+  if(data.email) var email = data.email.trim(); else {var email=""}
+  if(data.password) var password = data.password.trim(); else {var password=""}
+  if(data.password2) var password2 = data.password2; else {var password2=""}
   var errors = {};
 
   if (!Validaor.isLength(name, { min: 3, max: 30 })) {
