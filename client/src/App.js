@@ -4,7 +4,7 @@ import './App.css';
 import {Provider} from 'react-redux';
 import jwt_decode from 'jwt-decode';
 import setAuthToken from './utils/setAuthToken';
-import {GET_ERRORS,SET_CURRENT_USER} from './actions/types';
+import {SET_CURRENT_USER} from './actions/types';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -12,6 +12,7 @@ import Landing from './components/layout/Landing';
 import Register from './components/auth/register';
 import Login from './components/auth/login';
 import store from './store';
+import { logoutUser } from './actions/authAction';
 
 
 if(localStorage.jwtToken){
@@ -22,7 +23,16 @@ if(localStorage.jwtToken){
   store.dispatch({
     type:SET_CURRENT_USER,
     payload:decode
-  })
+  });
+
+  //check the expiration time of token
+  const expireTime = Date.now() / 1000;
+  if(decode.exp < expireTime){
+    //logout user
+    store.dispatch(logoutUser(false));
+    //redirect to login
+    window.location.pathname = "/login"
+  }
 }
 
 class App extends Component {
